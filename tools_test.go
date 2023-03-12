@@ -147,7 +147,7 @@ func TestTools_UploadOneFile(t *testing.T) {
 	_ = os.Remove(fmt.Sprintf("./testdata/uploads/%s", uploadedFiles.NewFileName))
 }
 
-func TestTools_CreateDirIfNotExist (t *testing.T) {
+func TestTools_CreateDirIfNotExist(t *testing.T) {
 	var testTools Tools
 
 	err := testTools.CreateDirIfNotExist("./testdata/myDir")
@@ -161,4 +161,33 @@ func TestTools_CreateDirIfNotExist (t *testing.T) {
 	}
 
 	_ = os.Remove("./testdata/myDir")
+}
+
+func TestTools_Slugify(t *testing.T) {
+	var slugTests = []struct {
+		name          string
+		str           string
+		expected      string
+		errorExpected bool
+	}{
+		{name: "valid string", str: "now is the time", expected: "now-is-the-time", errorExpected: false},
+		{name: "empty string", str: "", expected: "", errorExpected: true},
+		{name: "complex string", str: "Now is the time for all GOOD men! + fish & such &^123", expected: "now-is-the-time-for-all-good-men-fish-such-123", errorExpected: false},
+		{name: "japanese string", str: "こんにちは世界", expected: "", errorExpected: true},
+		{name: "japanese string and roman characters", str: "hello world こんにちは世界", expected: "hello-world", errorExpected: false},
+	}
+
+	var testTool Tools
+
+	for _, e := range slugTests {
+		slug, err := testTool.Slugify(e.str)
+
+		if err != nil && !e.errorExpected {
+			t.Errorf("%s: error recieved when none expected: %s", e.name, err.Error())
+		}
+
+		if !e.errorExpected && slug != e.expected {
+			t.Errorf("%s: wrong slug returned; expected %s but got %s", e.name, e.expected, slug)
+		}
+	}
 }
